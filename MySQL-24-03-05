@@ -1,0 +1,409 @@
+`goods`-- 日期相关的函数
+-- CURRENT_DATE() 当前日期
+SELECT CURRENT_DATE() FROM DUAL;
+
+-- CURRENT—TIME() 当前时间
+SELECT CURRENT_TIME() FROM DUAL;
+
+-- CURRENT_TIMESTAMP() 当前时间戳
+SELECT CURRENT_TIMESTAMP() FROM DUAL;
+
+-- DATE(datetime) 返回datetime的日期部分
+
+
+-- DATE_ADD(date2, INTERVAL d_value d_type) 在date2中加上日期或时间
+
+-- DATE_SUB() 在date2上减去一个时间
+
+-- DATEDIFF(date1,date2) 计算两个日期差 结果是天
+SELECT DATEDIFF('2011-11-11','1990-1-1') FROM DUAL
+
+-- TIMEDIFF(date1, date2) 结果是多少小时多少分钟多少秒
+SELECT TIMEDIFF('2011-11-11 10:10:10','2000-1-1 10:10:10') FROM DUAL
+
+-- NOW() 当前时间
+SELECT NOW() FROM DUAL;
+
+-- YEAR|Month|DATE(datetime) FROM_UNIXTIME() 年月日
+SELECT YEAR(NOW()) FROM DUAL
+SELECT MONTH(NOW()) FROM DUAL
+SELECT DAY(NOW()) FROM DUAL
+
+SELECT DATEDIFF('2003-11-2','2024-3-2') FROM DUAL
+
+SELECT DATEDIFF('2083-11-2','2024-3-2') FROM DUAL
+
+-- unix_timestamp() 返回的是1970-1-1到现在的秒数
+SELECT UNIX_TIMESTAMP() FROM DUAL
+
+-- FROM_UNIXTIME() 可以把一个unix_timestamp()秒数，转成指定格式的日期
+SELECT FROM_UNIXTIME(1618483484,'%Y-%m-%d %H-%i:%s') FROM DUAL; 
+
+-- 演示加密函数和系统函数
+-- 查询用户 -> 用户@IP地址
+SELECT USER() FROM DUAL;
+
+-- DATABASE() 插叙当前使用的数据库的名称
+SELECT DATABASE() FROM DUAL
+
+-- MD5(str) 为字符串算出一个MD5 32 的字符串，常用于用户密码加密
+SELECT MD5('qxk') FROM DUAL;
+
+-- 在mysql中，日期类型可以直接比较大小
+SELECT * FROM employee WHERE entry_date > '2000-01-01'
+
+-- like 模糊查询
+SELECT user_name, Salary FROM employee WHERE user_name  LIKE 'h%' 
+
+SELECT user_name,Salary FROM employee WHERE user_name LIKE '__p%'
+
+SELECT * FROM employee
+
+SELECT * FROM employee WHERE job = '巡山'
+
+DESC employee
+
+SELECT * FROM employee ORDER BY Salary ASC
+
+SELECT * FROM employee ORDER BY id ASC ,Salary DESC
+
+INSERT INTO employee VALUES (100,'大妖怪','1990-10-10','2005-01-01 10:10:30','看门',5000,'应聘','c')
+
+SELECT * FROM student
+
+SELECT * FROM student 
+	ORDER BY id
+	LIMIT 0,3
+
+SELECT * FROM student 
+	ORDER BY id
+	LIMIT 3,3
+	
+SELECT * FROM student 
+	ORDER BY id
+	LIMIT 6,3
+
+SELECT * FROM employee
+
+SELECT COUNT(*),birthday,AVG(Salary) FROM employee
+	GROUP BY birthday
+	
+SELECT COUNT(*), COUNT(IF(Salary IS NULL,1 ,NULL)) FROM employee
+
+SELECT COUNT(*) , COUNT(*) - COUNT(Salary) FROM employee
+
+UPDATE employee SET salary = 4000 WHERE id=400
+
+SELECT MAX(Salary) - MIN(Salary) FROM employee
+
+SELECT COUNT(DISTINCT id) FROM employee
+
+UPDATE employee SET Salary = NULL WHERE id = 100
+
+SELECT id, AVG(Salary) AS new_sal FROM employee
+	GROUP BY id
+	HAVING new_sal > 1000
+	ORDER BY new_sal DESC
+	LIMIT 0, 1
+	
+SELECT Salary FROM employee 
+	WHERE user_name = 'hsp'
+	
+SELECT DISTINCT job
+	FROM emp
+	WHERE deptno = 10;
+
+SELECT ename, job, sal, deptno
+	FROM emp
+	WHERE job IN(
+		SELECT DISTINCT job
+		FROM emp
+		WHERE deptno = 10;
+	)AND detpon != 10
+	
+SELECT cat_id, MAX(shop_price) 
+	FROM ecs_goods
+	GROUP BY cat_id
+	
+SELECT goods_id,ecs_goods.cat_id, goods_name, shop_price
+	FROM(
+		SELECT cat_id, MAX(shop_price) AS max_price
+		FROM ecs_goods
+		GROUP BY cat_id		
+	) temp, ecs_goods
+	WHERE temp.cat_id = ecs_goods.cat_id 
+	AND temp.max_price = ecs_goods.shop_price
+	
+SELECT ename, sal, deptno
+	FROM emp
+	WHERE deptno = 30
+	
+SELECT ename, sal, deptno
+	FROM emp
+	WHERE sal > ALL(
+			SELECT sal 
+			FROM emp
+		)
+		
+SELECT ename, sal, deptno
+	FROM emp
+	WHERE sal > (
+		SELECT MAX(sal) 
+			FROM emp
+			WHERE deptno = 30
+		)
+		
+SELECT ename, sal, deptno
+	FROM emp
+	WHERE sal > ALL(
+			SELECT sal 
+			FROM emp
+		)
+		
+SELECT ename, sal, deptno
+	FROM emp
+	WHERE sal > ANY(
+			SELECT MAX(sal)
+			FROM emp
+			WHERE deptno = 30
+		)
+		
+SELECT ename, sal, deptno
+	FROM emp
+	WHERE sal > (
+		SELECT MIN(sal)
+		FROM emp
+		WHERE deptno = 30
+		)
+		
+-- 多列子查询
+-- 1.得到smith的部门和岗位
+SELECT deptno, job
+	FROM emp
+	WHERE ename = 'smith'
+	
+-- 2.把上面查询的结果当作子查询来使用，并且使用多列子查询的语法进行匹配
+SELECT * 
+	FROM emp
+	WHERE (deptno, job)= (
+		SELECT deptno, job
+		FROM emp
+		WHERE ename = 'smith'
+		) AND ename != 'smith'
+
+SELECT * FROM student	
+
+SELECT chinese, math, english
+		FROM student
+		WHERE `name` = '宋江'
+SELECT *
+	FROM student
+	WHERE (chinese, math, english) = (
+				SELECT chinese, math, english
+				FROM student
+				WHERE `name` = '宋江'
+			) AND `name` != '宋江'
+			
+INSERT INTO student (id,`name`,chinese,english,math)
+	VALUES(8,'hsp',87,78,77)
+	
+SELECT ename, sal, temp.avg_sal, emp.deptno
+	FROM emp,(
+		SELECT deptno, AVG(sal) AS avg_sal
+		FROM emp
+		GROUP BY deptno
+		) temp
+	WHERE emp.deptno = temp.deptno AND emp.sal > temp.avg_sal
+	
+SELECT deptno, AVG(sal)
+	FROM emp
+	GROUP BY deptno
+	
+SELECT 
+	FROM emp,(
+		SELECT deptno, MAX(sal) AS max_sal
+		FROM emp
+		GROUP BY deptno
+		) temp
+	WHERE emp.deptno = temp.deptno AND emp.sal = temp.max_sal
+	
+-- 表的复制
+CREATE TABLE my_tab01
+	(id INT, 
+	`name` VARCHAR(32),
+	sal DOUBLE,
+	job VARCHAR(32),
+	depton INT);
+	
+DESC my_tab01
+
+SELECT * FROM my_tab01
+
+-- 1.先把emp表的记录复制到my_tab01
+INSERT INTO my_tab01
+	(id, `name`, sal, job, deptno)
+	SELECT id, user_name, Salary, job, id FROM employee
+	
+INSERT INTO my_tab01
+	SELECT * FROM my_tab01;
+	
+-- 合并查询
+-- union all 就是将两个查询结果合并，不会去重
+SELECT  user_name, Salary, job FROM employee WHERE Salary > 2500
+UNION ALL
+SELECT user_name, Salary, job  FROM employee WHERE job = '程序员'
+
+-- union 就是将两个查询结果合并，会去重 
+SELECT  user_name, Salary, job FROM employee WHERE Salary > 2500
+UNION
+SELECT user_name, Salary, job  FROM employee WHERE job = '程序员'
+
+-- 外连接
+
+SELECT dname, ename, job
+	FROM emp,dept
+	WHERE emp.deptno = dept.deptno
+	ORDER BY dname 
+	
+-- 创建stu
+CREATE TABLE stu (
+	id INT,
+	`name` VARCHAR(32));
+	
+INSERT INTO stu VALUES(1,'Jack');
+INSERT INTO stu VALUES(2,'Tom');
+INSERT INTO stu VALUES(3,'Kity');
+INSERT INTO stu VALUES(4,'nono');
+
+SELECT * FROM stu
+-- 创建exam
+CREATE TABLE exam(
+	id INT,
+	grade INT);
+	
+INSERT INTO exam VALUES(1,56);
+INSERT INTO exam VALUES(2,76);
+INSERT INTO exam VALUES(11,8);
+
+SELECT * FROM exam
+
+SELECT `name`, stu.`id`, grade
+	FROM stu,exam
+	WHERE stu.id = exam.`id`
+	
+-- 改成左外连接
+SELECT `name`, stu.`id`, grade
+	FROM stu LEFT JOIN exam
+	ON stu.id = exam.`id`
+
+-- 改成右外连接
+SELECT `name`, stu.`id`, grade
+	FROM stu RIGHT JOIN exam
+	ON stu.id = exam.`id`	
+	
+SELECT dname, ename, job 
+	FROM dept LEFT JOIN emp
+	ON dept.deptno = emp.deptno
+	
+CREATE TABLE t17
+	(id INT PRIMARY KEY,
+	`name` VARCHAR(32),
+	email VARCHAR(32));
+	
+SELECT * FROM t17
+	
+-- 主键列的值不能重复
+INSERT INTO t17
+	VALUES(1,'jack','jack@sohu.com');
+	
+INSERT INTO t17
+	VALUES(2,'tom','tom@sohu.com');
+	
+INSERT INTO t17
+	VALUES(3,'hsp','hsp@sohu.com');
+	
+DESC t17
+
+CREATE TABLE t18
+	(id INT,
+	`name` VARCHAR(32),
+	email VARCHAR(32),
+	PRIMARY KEY(id,`name`)
+	);
+	
+DESC t18 
+
+-- primary key 的两种定义方式
+CREATE TABLE t19
+	(id INT,
+	`name` VARCHAR(32) PRIMARY KEY,
+	email VARCHAR(32)
+	);
+	
+CREATE TABLE t20
+	(id INT,
+	`name` VARCHAR(32),
+	email VARCHAR(32),
+	PRIMARY KEY(`name`)
+	);
+	
+CREATE TABLE t21
+	(id INT UNIQUE,
+	`name` VARCHAR(32),
+	email VARCHAR(32)
+	);
+	
+INSERT INTO t21
+	VALUES(1,'jack','jack@sohu.com');
+	
+-- 外键演示
+-- 创建班级表
+CREATE TABLE my_class(
+	id INT PRIMARY KEY, -- 班级编号
+	`name` VARCHAR(32) NOT NULL DEFAULT '');
+	
+
+-- 创建学生表
+CREATE TABLE my_stu(
+	id INT PRIMARY KEY,
+	`name` VARCHAR(32) NOT NULL DEFAULT '',
+	class_id INT, -- 学生所在班级的编号
+	-- 下面指定外键关系
+	FOREIGN KEY (class_id) REFERENCES my_class(id));
+-- 测试数据
+INSERT INTO my_class
+	VALUES(100,'java'),(200,'web');
+	
+SELECT * FROM my_class;
+INSERT INTO my_stu
+	VALUES(1,'tom',100);
+INSERT INTO my_stu
+	VALUES(2,'jack',200);
+INSERT INTO my_stu
+	VALUES(3,'hsp',200);
+ 
+SELECT * FROM my_Stu
+	
+-- 演示自增长的使用
+-- 创建表
+CREATE TABLE t24
+	(id INT PRIMARY KEY AUTO_INCREMENT,
+	email VARCHAR(32) NOT NULL DEFAULT '',
+	`name` VARCHAR(32) NOT NULL DEFAULT '');
+DESC t24
+
+INSERT INTO t24
+	VALUES(NULL,'tom@qq.com','tom');
+	
+SELECT * FROM t24
+
+-- 修改自增长的开始值
+CREATE TABLE t25
+	(id INT PRIMARY KEY AUTO_INCREMENT,
+	email VARCHAR(32) NOT NULL DEFAULT '',
+	`name` VARCHAR(32) NOT NULL DEFAULT '');
+ALTER TABLE t25 AUTO_INCREMENT =  100;
+INSERT INTO t25
+	VALUES(NULL,'tom@qq.com','tom');
+	
+SELECT * FROM t25
